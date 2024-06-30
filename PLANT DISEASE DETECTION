@@ -1,0 +1,77 @@
+#Importing the libraries
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+#Data Segmentation #Preprocessing the Training set
+datagen = ImageDataGenerator(rescale=1./255,validation_split=0.22) training_set = datagen.flow_from_directory
+('TRAIN', target_size=(224,244),color_mode="rgb", subset="training", class_mode="binary",batch_size=32,shuffle=True) valid_generator=datagen.flow_from_directory( directory="train", target_size=(224,244),color_mode="rgb",subset="validation", class_mode="binary",batch_size=32,shuffle=True)
+#Showing some image from training
+import matplotlib.pyplot as plt def plotImages(images_arr):
+fig, axes = plt.subplots(1, 5, figsize=(20,20)) axes = axes.flatten()
+for img, ax in zip(images_arr, axes):
+plt.tight_layout() plt.show()
+images = [training_set[0]
+[0][0] for i in range (5)]
+plotImages(images)
+training_set.class_indices import tensorflow_hub as hub BATCH_SIZE = 5
+IMG_SHAPE = 224
+URL = "https://tfhub.dev/google/tf2-preview/mobilenet_v2/feature_vector/3"
+mobile_net=hub.KerasLayer(URL,input_shape=(IMG_SHAPE, IMG_SHAPE, 3))
+mobile_net.trainable = False
+model = tf.keras.models.Sequential([ mobile_net,
+tf.keras.layers.Dense(1, activation='sigmoid') #[0, 1] or [1, 0]])
+model.compile(optimizer='adam', loss=binary_crossentropy,metrics=['accuracy'])
+history = model.fit(training_set,epochs=10,validation_data=valid_generator)
+  #Making a single prediction test
+import numpy as np
+from tensorflow.keras.preprocessing import image
+test_image = image.load_img('no1.jpg', target_size = (224,224)) test_image =image.img_to_array(test_image)
+test_image=test_image/255
+test_image =np.expand_dims(test_image, axis =0) result = model.predict(test_image)
+result
+#Save model
+from tensorflow.keras.models import load_modelmodel.save('brain_tumor.h5') import os
+import numpy as np
+#Keras
+from tensorflow.keras.models import load_model from tensorflow.keras.preprocessing import image 
+#Flask utils
+from flask import Flask, request,
+render_templatefrom werkzeug.utils import
+secure_filename import tensorflow_hub as hub
+#Define a flask app
+app = Flask(   name	)
+#Model saved with Keras model.save()
+model=load_model(('brain_tumor.h5'),custom_objects={'KerasLayer': hub.KerasLayer})
+def model_predict(img_path, model):
+test_image = image.load_img(img_path, target_size = (224,224)) test_image = image.img_to_array(test_image)
+test_image = test_image / 255
+test_image = np.expand_dims(test_image, axis=0)result = model.predict(test_image) result
+predictions = model.predict(x) predictions[0]
+labels = train_generator.class_indices labels = {v: k for k, v in labels.items()} labels
+predicted_label = labels[np.argmax(predictions)] print(predicted_label)
+import os
+import tensorflow as tf import numpy as np
+from tensorflow.keras.preprocessing import image # type: ignore
+from PIL import Image import cv2
+from keras.models import load_model
+from flask import Flask, request, render_template from werkzeug.utils import secure_filename
+from tensorflow.keras.preprocessing.image import load_img, img_to_array app = Flask(	name	)
+model =load_model('model.h5')
+print('Model loaded. Check http://127.0.0.1:5000/') labels = {0: 'Healthy', 1: 'Powdery', 2: 'Rust'}
+def getResult(image_path):
+img = load_img(image_path, target_size=(225,225)) x = img_to_array(img)
+x = x.astype('float32') / 255.
+x = np.expand_dims(x, axis=0) predictions = model.predict(x)[0] return predictions
+@app.route('/', methods=['GET']) def index():
+return render_template('index.html')
+#Main page
+@app.route('/predict', methods=['GET', 'POST'])   def upload():
+if request.method == 'POST':
+#Get the file from post request
+f = request.files['file']
+#Save the file to ./uploads
+basepath = os.path.dirname(	file	)
+file_path = os.path.join(basepath, 'uploads', secure_filename(f.filename)) f.save(file_path)
+#Make prediction
+predictions=getResult(file_path)
+predicted_label = labels[np.argmax(predictions)] return str(predicted_label)
+if	name	== '	main	': app.run(debug=True)
